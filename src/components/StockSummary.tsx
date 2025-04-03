@@ -1,16 +1,21 @@
 import React from 'react';
-import { View, Text, StyleSheet, Card } from 'react-native';
+import { View, Text, StyleSheet } from 'react-native';
 import { useTheme } from '@contexts/ThemeContext';
 import { useStock } from '@contexts/StockContext';
+import { Product } from '../constants/products';
 
-export const StockSummary: React.FC = () => {
+interface StockSummaryProps {
+  product: Product;
+}
+
+export const StockSummary: React.FC<StockSummaryProps> = ({ product }) => {
   const { colors } = useTheme();
   const { stock } = useStock();
 
   const totalStock = Object.values(stock).reduce((acc, curr) => acc + curr, 0);
 
   return (
-    <Card style={[styles.card, { backgroundColor: colors.card }]}>
+    <View style={[styles.card, { backgroundColor: colors.card }]}>
       <View style={styles.container}>
         <View style={styles.item}>
           <Text style={[styles.label, { color: colors.text }]}>Total Stock</Text>
@@ -25,7 +30,7 @@ export const StockSummary: React.FC = () => {
           <Text style={[styles.value, { color: colors.text }]}>{stock.warehouse2} L</Text>
         </View>
       </View>
-    </Card>
+    </View>
   );
 };
 
