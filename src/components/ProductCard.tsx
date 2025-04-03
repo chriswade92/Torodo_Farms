@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,78 +6,62 @@ import {
   TouchableOpacity,
   Alert,
   Image,
-  Dimensions,
-  Animated,
 } from 'react-native';
 import { Product, ProductSize } from '../constants/products';
 import { useCart } from '../contexts/CartContext';
+import { useStock } from '../contexts/StockContext';
+import { StockSummary } from './StockSummary';
+import { NavigationProp, useNavigation } from '@react-navigation/native';
+
+type RootStackParamList = {
+  StockSummary: { product: Product };
+};
 
 interface ProductCardProps {
   product: Product;
+  onStockPress?: () => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onStockPress }) => {
   const [selectedSize, setSelectedSize] = useState<ProductSize | null>(null);
-  const [quantity, setQuantity] = useState(1);
-  const [showAddedBadge, setShowAddedBadge] = useState(false);
-  const fadeAnim = useState(new Animated.Value(0))[0];
   const { addToCart } = useCart();
-
-  const animateBadge = useCallback(() => {
-    fadeAnim.setValue(0);
-    Animated.sequence([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-      Animated.delay(1500),
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 300,
-        useNativeDriver: true,
-      }),
-    ]).start(() => setShowAddedBadge(false));
-  }, [fadeAnim]);
+  const { getAllStockForProduct } = useStock();
+  const stocks = getAllStockForProduct(product.id);
+  const totalStock = stocks.reduce((sum, stock) => sum + stock.quantity, 0);
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
   const handleOrder = () => {
     if (!selectedSize) {
-      Alert.alert('Erreur', 'Veuillez sélectionner une taille');
+      Alert.alert('Error', 'Please select a size');
       return;
     }
-    addToCart(product, selectedSize, quantity);
-    setShowAddedBadge(true);
-    animateBadge();
+    addToCart(product, selectedSize, 1);
     setSelectedSize(null);
-    setQuantity(1);
   };
 
   return (
     <View style={styles.card}>
-      {showAddedBadge && (
-        <Animated.View
-          style={[
-            styles.badge,
-            {
-              opacity: fadeAnim,
-              transform: [
-                {
-                  translateY: fadeAnim.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20, 0],
-                  }),
-                },
-              ],
-            },
-          ]}
-        >
-          <Text style={styles.badgeText}>Ajouté au panier!</Text>
-        </Animated.View>
-      )}
-      <Image source={product.image} style={styles.productImage} resizeMode="cover" />
+      <Image source={product.image} style={styles.productImage} resizeMode="contain" />
       <View style={styles.contentContainer}>
         <Text style={styles.title}>{product.name}</Text>
-        <Text style={styles.description}>{product.description}</Text>
+        <Text style={styles.stockInfo}>Available Stock: {totalStock}</Text>
+        
+        <View style={styles.actionContainer}>
+          <TouchableOpacity
+            style={styles.buyButton}
+            onPress={handleOrder}
+          >
+            <Text style={styles.buttonText}>Buy Now</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            style={styles.subscribeButton}
+            onPress={() => navigation.navigate('StockSummary', { product })}
+          >
+            <Text style={styles.subscribeText}>Subscribe</Text>
+          </TouchableOpacity>
+        </View>
+
         <View style={styles.sizesContainer}>
           {product.sizes.map((size) => (
             <TouchableOpacity
@@ -90,38 +74,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             >
               <Text style={[
                 styles.sizeText,
-                selectedSize?.size === size.size && styles.selectedText,
+                selectedSize?.size === size.size && styles.selectedSizeText,
               ]}>{size.size}L</Text>
               <Text style={[
                 styles.priceText,
-                selectedSize?.size === size.size && styles.selectedText,
+                selectedSize?.size === size.size && styles.selectedSizeText,
               ]}>{size.price} CFA</Text>
             </TouchableOpacity>
           ))}
         </View>
-        <View style={styles.quantityContainer}>
-          <TouchableOpacity
-            style={styles.quantityButton}
-            onPress={() => quantity > 1 && setQuantity(quantity - 1)}
-          >
-            <Text style={styles.quantityButtonText}>-</Text>
-          </TouchableOpacity>
-          <Text style={styles.quantityText}>{quantity}</Text>
-          <TouchableOpacity
-            style={styles.quantityButton}
-            onPress={() => setQuantity(quantity + 1)}
-          >
-            <Text style={styles.quantityButtonText}>+</Text>
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity 
-          style={[styles.orderButton, !selectedSize && styles.disabledButton]}
-          onPress={handleOrder}
-          disabled={!selectedSize}
-        >
-          <Text style={styles.orderButtonText}>Ajouter au panier</Text>
-        </TouchableOpacity>
       </View>
+      <StockSummary product={product} />
     </View>
   );
 };
@@ -131,111 +94,94 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 15,
     margin: 10,
+    padding: 15,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    overflow: 'hidden',
-  },
-  badge: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#4CAF50',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    zIndex: 1,
-  },
-  badgeText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   productImage: {
     width: '100%',
-    height: 200,
+    height: 150,
+    marginBottom: 15,
   },
   contentContainer: {
-    padding: 15,
+    alignItems: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 5,
     color: '#333',
+    marginBottom: 5,
   },
-  description: {
-    fontSize: 16,
+  stockInfo: {
+    fontSize: 14,
     color: '#666',
     marginBottom: 15,
-    lineHeight: 22,
+  },
+  actionContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginBottom: 15,
+  },
+  buyButton: {
+    backgroundColor: '#2B78E4',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    width: '48%',
+  },
+  subscribeButton: {
+    backgroundColor: 'white',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    width: '48%',
+    borderWidth: 1,
+    borderColor: '#2B78E4',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
+  subscribeText: {
+    color: '#2B78E4',
+    fontSize: 16,
+    fontWeight: '600',
+    textAlign: 'center',
   },
   sizesContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 15,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   sizeButton: {
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#F5F7FA',
     padding: 12,
     borderRadius: 10,
+    width: '48%',
+    marginBottom: 10,
     alignItems: 'center',
-    width: '45%',
   },
   selectedSize: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#2B78E4',
   },
   sizeText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '500',
     color: '#333',
   },
-  selectedText: {
+  selectedSizeText: {
     color: 'white',
   },
   priceText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#666',
     marginTop: 4,
-  },
-  quantityContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 15,
-  },
-  quantityButton: {
-    backgroundColor: '#f0f0f0',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quantityButtonText: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  quantityText: {
-    fontSize: 20,
-    marginHorizontal: 20,
-    color: '#333',
-  },
-  orderButton: {
-    backgroundColor: '#007AFF',
-    padding: 15,
-    borderRadius: 10,
-    alignItems: 'center',
-  },
-  disabledButton: {
-    backgroundColor: '#ccc',
-  },
-  orderButtonText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
 }); 

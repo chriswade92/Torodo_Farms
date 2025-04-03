@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm install
+    
+    - name: Check TypeScript
+      run: npx tsc --noEmit
+    
+    - name: Run ESLint
+      run: npx eslint . --ext .js,.jsx,.ts,.tsx
+      
+    - name: Run tests
+      run: npm test
+      
+    - name: Build Android
+      run: |
+        cd android
+        ./gradlew assembleDebug 

@@ -10,10 +10,40 @@ import {
 import { useCart } from '../contexts/CartContext';
 import { useSales } from '../contexts/SalesContext';
 
+/**
+ * @interface CartItem
+ * @description Représente un article dans le panier
+ * @property {Object} product - Le produit laitier
+ * @property {string} product.name - Nom du produit
+ * @property {Object} size - Information sur la taille du produit
+ * @property {number} size.size - Taille en litres
+ * @property {number} size.price - Prix unitaire
+ * @property {number} quantity - Quantité commandée
+ */
+
+/**
+ * @component CartScreen
+ * @description Écran principal du panier d'achat permettant aux utilisateurs de:
+ * - Voir les articles dans leur panier
+ * - Modifier les quantités
+ * - Supprimer des articles
+ * - Confirmer la commande
+ * 
+ * @example
+ * ```tsx
+ * <CartScreen />
+ * ```
+ */
 export const CartScreen = () => {
   const { items, removeFromCart, updateQuantity, clearCart, total } = useCart();
   const { addSale } = useSales();
 
+  /**
+   * @function handleConfirmOrder
+   * @description Gère la confirmation de la commande avec une boîte de dialogue
+   * Vérifie si le panier n'est pas vide, calcule le total et ajoute la vente
+   * à l'historique après confirmation
+   */
   const handleConfirmOrder = () => {
     if (items.length === 0) {
       Alert.alert('Erreur', 'Votre panier est vide');

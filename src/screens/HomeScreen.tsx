@@ -1,120 +1,105 @@
-import React, { useState } from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  Image,
-  TextInput,
-  TouchableOpacity,
-} from 'react-native';
-import { ProductCard } from '../components/ProductCard';
-import { PRODUCTS } from '../constants/products';
+import React from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { useTheme } from '@contexts/ThemeContext';
+import { useStock } from '@contexts/StockContext';
 
-export const HomeScreen = () => {
-  const [searchQuery, setSearchQuery] = useState('');
+export const HomeScreen: React.FC = () => {
+  const { colors } = useTheme();
+  const { stock } = useStock();
 
-  const filteredProducts = PRODUCTS.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const totalStock = stock.warehouse1 + stock.warehouse2;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Image 
-          source={require('../assets/logo.jpg')} 
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        <Text style={styles.headerTitle}>TorodoFarms</Text>
-        <View style={styles.searchContainer}>
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Rechercher un produit..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery !== '' && (
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={() => setSearchQuery('')}
-            >
-              <Text style={styles.clearButtonText}>×</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+        <Text style={[styles.title, { color: colors.text }]}>Dashboard</Text>
       </View>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {filteredProducts.length === 0 ? (
-          <Text style={styles.noResults}>Aucun produit trouvé</Text>
-        ) : (
-          filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))
-        )}
-      </ScrollView>
-    </SafeAreaView>
+
+      <View style={[styles.card, { backgroundColor: colors.card }]}>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>Total Stock</Text>
+        <Text style={[styles.cardValue, { color: colors.text }]}>{totalStock} L</Text>
+      </View>
+
+      <View style={[styles.card, { backgroundColor: colors.card }]}>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>Warehouse 1</Text>
+        <Text style={[styles.cardValue, { color: colors.text }]}>{stock.warehouse1} L</Text>
+      </View>
+
+      <View style={[styles.card, { backgroundColor: colors.card }]}>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>Warehouse 2</Text>
+        <Text style={[styles.cardValue, { color: colors.text }]}>{stock.warehouse2} L</Text>
+      </View>
+
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: colors.primary }]}
+          onPress={() => {}}
+        >
+          <Text style={styles.actionButtonText}>New Sale</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: colors.primary }]}
+          onPress={() => {}}
+        >
+          <Text style={styles.actionButtonText}>Transfer Stock</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: colors.primary }]}
+          onPress={() => {}}
+        >
+          <Text style={styles.actionButtonText}>Manage Subscriptions</Text>
+        </TouchableOpacity>
+      </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
-    padding: 20,
-    backgroundColor: 'white',
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    alignItems: 'center',
+    borderBottomColor: '#E5E5EA',
   },
-  logo: {
-    width: 120,
-    height: 120,
-    marginBottom: 10,
-  },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#000',
-    marginBottom: 15,
-  },
-  searchContainer: {
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  searchInput: {
-    flex: 1,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 25,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    fontSize: 16,
-  },
-  clearButton: {
-    position: 'absolute',
-    right: 15,
-    top: '50%',
-    transform: [{ translateY: -12 }],
-  },
-  clearButtonText: {
+  title: {
     fontSize: 24,
-    color: '#666',
     fontWeight: 'bold',
   },
-  scrollContent: {
-    padding: 10,
+  card: {
+    margin: 16,
+    padding: 16,
+    borderRadius: 8,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
-  noResults: {
-    textAlign: 'center',
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  cardValue: {
+    fontSize: 32,
+    fontWeight: 'bold',
+  },
+  actions: {
+    padding: 16,
+  },
+  actionButton: {
+    padding: 16,
+    borderRadius: 8,
+    marginBottom: 12,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
-    color: '#666',
-    marginTop: 20,
+    fontWeight: '500',
   },
 }); 

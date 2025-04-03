@@ -1,0 +1,15 @@
+# These owners will be the default owners for everything in the repo
+* @chriswade92
+
+# App core files
+/src/contexts/ @chriswade92
+/src/screens/ @chriswade92
+/src/components/ @chriswade92
+
+# Configuration files
+*.json @chriswade92
+*.yml @chriswade92
+*.yaml @chriswade92
+
+# Android specific
+/android/ @chriswade92 
