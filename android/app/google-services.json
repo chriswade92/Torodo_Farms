@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "365803794501",
+    "project_id": "torodofarms",
+    "storage_bucket": "torodofarms.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:365803794501:android:e6b2bab2a3d1490b03b32c",
+        "android_client_info": {
+          "package_name": "com.torodofarms.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMUUfe4rJQw8Kim-Z4_pEif9WVe1cy9MA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

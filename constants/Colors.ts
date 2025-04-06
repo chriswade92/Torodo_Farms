@@ -7,6 +7,17 @@ const tintColorLight = '#0a7ea4';
 const tintColorDark = '#fff';
 
 export const Colors = {
+  primary: '#90C641', // Torodo Farms green
+  primaryDark: '#729B34', // Darker shade for contrast
+  black: '#000000',
+  white: '#FFFFFF',
+  gray: {
+    light: '#F5F5F5',
+    medium: '#666666',
+    dark: '#333333',
+  },
+  success: '#4CAF50',
+  error: '#F44336',
   light: {
     text: '#11181C',
     background: '#fff',
