@@ -1,0 +1,72 @@
+{
+  "designSystem": {
+    "style": {
+      "theme": "Light, Fresh, Minimalist",
+      "colorPalette": {
+        "primary": "#64CFF6",
+        "secondary": "#FFFFFF",
+        "accentColors": ["#FFC700", "#FF5E7E", "#82D173", "#F7A655", "#A97CFF"],
+        "background": "#F7FCFE",
+        "text": "#333333",
+        "subText": "#888888"
+      },
+      "typography": {
+        "fontFamily": "Rounded, Sans-Serif",
+        "headingFontWeight": "Bold",
+        "bodyFontWeight": "Regular",
+        "headingSizes": ["24px", "20px", "18px"],
+        "bodyTextSizes": ["14px", "16px"]
+      },
+      "iconography": {
+        "style": "Minimalistic, Rounded",
+        "stroke": "1.5px",
+        "color": "inherit from accentColors or primary color"
+      },
+      "buttons": {
+        "borderRadius": "12px",
+        "shadow": "Subtle",
+        "style": "Filled, Rounded Corners",
+        "states": ["default", "hover", "active"]
+      }
+    },
+    "structure": {
+      "layouts": [
+        "Vertical scrolling",
+        "Grid-based product cards",
+        "Floating action buttons",
+        "Search input prominently placed at the top"
+      ],
+      "navigation": {
+        "type": "Bottom Navigation",
+        "elements": ["Home", "Alerts", "Profile", "Settings"],
+        "style": "Minimalistic icons with labels"
+      },
+      "components": {
+        "cards": {
+          "borderRadius": "12px",
+          "shadow": "Soft",
+          "padding": "16px",
+          "imagePlacement": "top",
+          "content": ["image", "title", "price", "button"]
+        },
+        "searchBar": {
+          "style": "Rounded edges, subtle shadow",
+          "placement": "top",
+          "icon": "Search icon at left"
+        },
+        "citySelector": {
+          "style": "Button-like rounded cards",
+          "layout": "Flexible, wrapping layout",
+          "selectedState": "Highlight using primary or accent colors"
+        }
+      }
+    },
+    "interaction": {
+      "feedback": {
+        "buttonPress": "Subtle scale-down animation",
+        "navigationTransition": "Slide and fade animations",
+        "hoverState": "Subtle color transition"
+      }
+    }
+  }
+}

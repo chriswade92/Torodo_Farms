@@ -1,0 +1,32 @@
+{
+  "appContext": {
+    "projectName": "Torodo Farms",
+    "businessDomain": "E-commerce for Dairy Milk and Fresh Vegetables",
+    "userTypes": [
+      {
+        "role": "Customer",
+        "platform": "Mobile App",
+        "features": ["Browse products", "Place orders", "Payment integration", "Order tracking", "Personalized recommendations"]
+      },
+      {
+        "role": "Seller/Admin",
+        "platform": "Web Dashboard",
+        "features": ["Manage products and inventory", "Monitor sales analytics", "Process orders", "Inventory alerts", "Generate sales reports"]
+      }
+    ],
+    "designSystemReference": "Milkapp Visual Design Profile",
+    "interactionGoals": "Seamless customer experience for ordering and efficient backend management for inventory and sales.",
+    "promptInstructions": {
+      "generate": [
+        "Consistent UI screens for customers based on the JSON design system.",
+        "Intuitive web dashboard interface for sellers to monitor sales and inventory.",
+        "Clear navigational patterns aligning with customer and seller needs.",
+        "Responsive design adaptable across multiple devices.",
+        "Implement backend logic and data management for orders, inventory tracking, and sales analytics.",
+        "Integration with secure payment gateways and order management systems."
+      ],
+      "styleReference": "Refer strictly to the provided JSON structured design system (Milkapp Visual Design Profile) for visual consistency.",
+      "buildInstructions": "Develop comprehensive frontend and backend solutions ensuring full application functionality from user interaction to backend data management."
+    }
+  }
+}
