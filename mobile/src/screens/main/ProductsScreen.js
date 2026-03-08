@@ -14,6 +14,7 @@ import { Colors } from '../../constants/Colors';
 import Icon from 'react-native-vector-icons/Feather';
 import { fetchProducts, fetchProductsByCategory } from '../../store/slices/productSlice';
 import { addToCart } from '../../store/slices/cartSlice';
+import { UPLOADS_BASE_URL } from '../../config/api';
 
 const CATEGORIES = [
   { id: 'all', name: 'All', icon: '🌿' },
@@ -34,7 +35,7 @@ const getProductImageUrl = (product) => {
   const primary = product.images.find(img => img.isPrimary);
   const url = primary?.url || product.images[0]?.url;
   if (!url) return null;
-  return `http://localhost:5000${url}`;
+  return `${UPLOADS_BASE_URL}${url}`;
 };
 
 const formatCurrency = (amount) =>
