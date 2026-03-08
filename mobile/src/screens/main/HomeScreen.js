@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Colors } from '../../constants/Colors';
@@ -26,6 +27,14 @@ const CATEGORIES = [
 const getCategoryEmoji = (category) => {
   const found = CATEGORIES.find(c => c.id === category);
   return found ? found.icon : '📦';
+};
+
+const getProductImageUrl = (product) => {
+  if (!product?.images?.length) return null;
+  const primary = product.images.find(img => img.isPrimary);
+  const url = primary?.url || product.images[0]?.url;
+  if (!url) return null;
+  return `http://localhost:5000${url}`;
 };
 
 const formatCurrency = (amount) =>
@@ -148,10 +157,15 @@ const HomeScreen = ({ navigation }) => {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.productsList}
-            renderItem={({ item }) => (
+            renderItem={({ item }) => {
+              const imgUrl = getProductImageUrl(item);
+              return (
               <View style={styles.productCard}>
                 <View style={styles.productImage}>
-                  <Text style={styles.productEmoji}>{getCategoryEmoji(item.category)}</Text>
+                  {imgUrl
+                    ? <Image source={{ uri: imgUrl }} style={styles.productImageReal} resizeMode="cover" />
+                    : <Text style={styles.productEmoji}>{getCategoryEmoji(item.category)}</Text>
+                  }
                 </View>
                 <View style={styles.productInfo}>
                   <Text style={styles.productName} numberOfLines={2}>{item.name}</Text>
@@ -165,7 +179,8 @@ const HomeScreen = ({ navigation }) => {
                   <Icon name="plus" size={16} color={Colors.secondary} />
                 </TouchableOpacity>
               </View>
-            )}
+              );
+            }}
             keyExtractor={item => item._id}
           />
         )}
@@ -284,6 +299,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   productEmoji: { fontSize: 36 },
+  productImageReal: { width: '100%', height: '100%', borderRadius: 8 },
   productInfo: { flex: 1 },
   productName: { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: 2 },
   productUnit: { fontSize: 12, color: Colors.subText, marginBottom: 6 },

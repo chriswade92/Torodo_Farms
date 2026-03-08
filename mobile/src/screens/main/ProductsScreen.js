@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Colors } from '../../constants/Colors';
@@ -26,6 +27,14 @@ const CATEGORIES = [
 const CATEGORY_ICONS = {
   dairy: '🥛', vegetables: '🥬', fruits: '🍎',
   beverages: '🥤', snacks: '🥜',
+};
+
+const getProductImageUrl = (product) => {
+  if (!product?.images?.length) return null;
+  const primary = product.images.find(img => img.isPrimary);
+  const url = primary?.url || product.images[0]?.url;
+  if (!url) return null;
+  return `http://localhost:5000${url}`;
 };
 
 const formatCurrency = (amount) =>
@@ -67,12 +76,14 @@ const ProductsScreen = ({ route }) => {
 
   const renderProduct = ({ item }) => {
     const isAdded = addedId === item._id;
+    const imgUrl = getProductImageUrl(item);
     return (
       <View style={styles.productCard}>
         <View style={styles.productImageBox}>
-          <Text style={styles.productEmoji}>
-            {CATEGORY_ICONS[item.category] || '📦'}
-          </Text>
+          {imgUrl
+            ? <Image source={{ uri: imgUrl }} style={styles.productImageReal} resizeMode="cover" />
+            : <Text style={styles.productEmoji}>{CATEGORY_ICONS[item.category] || '📦'}</Text>
+          }
           {item.inventory?.quantity === 0 && (
             <View style={styles.outOfStockOverlay}>
               <Text style={styles.outOfStockText}>Out of Stock</Text>
@@ -218,6 +229,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   productEmoji: { fontSize: 36 },
+  productImageReal: { width: '100%', height: '100%', borderRadius: 8 },
   outOfStockOverlay: {
     position: 'absolute',
     bottom: 0,

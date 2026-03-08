@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import { FiPlus, FiEdit2, FiTrash2, FiPackage, FiX, FiSearch } from 'react-icons/fi';
+import axios from 'axios';
+import { FiPlus, FiEdit2, FiTrash2, FiPackage, FiX, FiSearch, FiImage, FiUploadCloud } from 'react-icons/fi';
 import {
   fetchProducts,
   createProduct,
@@ -11,6 +12,23 @@ import {
   clearCurrentProduct,
 } from '../../store/slices/productSlice';
 
+const SUBCATEGORY_MAP = {
+  dairy: ['milk', 'cheese', 'yogurt', 'butter', 'cream'],
+  vegetables: ['leafy_greens', 'root_vegetables', 'tomatoes', 'peppers', 'onions'],
+  fruits: ['citrus', 'berries', 'tropical', 'apples', 'bananas'],
+  beverages: ['juice', 'smoothies', 'tea', 'coffee'],
+  snacks: ['nuts', 'seeds', 'dried_fruits'],
+};
+
+const CATEGORY_EMOJI = { dairy: '🥛', vegetables: '🥦', fruits: '🍎', beverages: '🧃', snacks: '🥜' };
+
+const getPrimaryImage = (product) => {
+  if (!product?.images?.length) return null;
+  const primary = product.images.find(img => img.isPrimary);
+  return primary?.url || product.images[0]?.url || null;
+};
+
+// Styled components
 const PageContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -61,11 +79,7 @@ const SearchBar = styled.div`
   padding: var(--spacing-sm) var(--spacing-md);
   width: 280px;
 
-  svg {
-    color: var(--sub-text);
-    flex-shrink: 0;
-  }
-
+  svg { color: var(--sub-text); flex-shrink: 0; }
   input {
     border: none;
     outline: none;
@@ -73,7 +87,6 @@ const SearchBar = styled.div`
     color: var(--text);
     font-size: 14px;
     width: 100%;
-
     &::placeholder { color: var(--sub-text); }
   }
 `;
@@ -116,6 +129,31 @@ const Tr = styled.tr`
   &:hover td { background: #FAFAFA; }
 `;
 
+const ProductCell = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+`;
+
+const ProductThumb = styled.div`
+  width: 40px;
+  height: 40px;
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  background: #F5F5F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 18px;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
 const CategoryBadge = styled.span`
   padding: 3px 10px;
   border-radius: 12px;
@@ -146,7 +184,6 @@ const ActionBtn = styled.button`
   transition: all var(--transition-fast);
 
   &:hover { background: ${props => props.danger ? 'rgba(255,94,126,0.1)' : 'rgba(100,207,246,0.1)'}; }
-
   svg { font-size: 16px; display: block; }
 `;
 
@@ -181,7 +218,7 @@ const Modal = styled.div`
   border-radius: var(--border-radius-md);
   padding: var(--spacing-xl);
   width: 100%;
-  max-width: 520px;
+  max-width: 540px;
   max-height: 90vh;
   overflow-y: auto;
   box-shadow: 0 20px 60px rgba(0,0,0,0.15);
@@ -210,6 +247,89 @@ const CloseBtn = styled.button`
   border-radius: 4px;
   &:hover { color: var(--text); }
   svg { font-size: 20px; display: block; }
+`;
+
+// Image upload area
+const ImageUploadArea = styled.div`
+  border: 2px dashed ${props => props.dragover ? 'var(--primary)' : '#E0E0E0'};
+  border-radius: var(--border-radius-sm);
+  background: ${props => props.dragover ? 'rgba(100,207,246,0.05)' : 'var(--background)'};
+  padding: var(--spacing-lg);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+
+  &:hover { border-color: var(--primary); background: rgba(100,207,246,0.05); }
+
+  input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+`;
+
+const ImagePreview = styled.div`
+  position: relative;
+  width: 100%;
+  height: 140px;
+  border-radius: var(--border-radius-sm);
+  overflow: hidden;
+  background: #F5F5F5;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+`;
+
+const RemoveImageBtn = styled.button`
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+
+  &:hover { background: rgba(0,0,0,0.75); }
+`;
+
+const UploadHint = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--sub-text);
+  pointer-events: none;
+
+  svg { font-size: 28px; color: #C0C0C0; }
+  p { margin: 0; font-size: 13px; }
+  span { font-size: 11px; color: #B0B0B0; }
+`;
+
+const UploadingOverlay = styled.div`
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--primary);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--border-radius-sm);
 `;
 
 const FormGrid = styled.div`
@@ -294,12 +414,17 @@ const EMPTY_FORM = {
 const ProductsPage = () => {
   const dispatch = useDispatch();
   const { products, loading, error } = useSelector(state => state.products);
+  const token = useSelector(state => state.auth?.token);
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editId, setEditId] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [formError, setFormError] = useState('');
   const [search, setSearch] = useState('');
+  const [imagePreview, setImagePreview] = useState(null); // local preview URL
+  const [imageUrl, setImageUrl] = useState('');           // uploaded server URL
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -317,6 +442,8 @@ const ProductsPage = () => {
     setIsEditing(false);
     setEditId(null);
     setFormError('');
+    setImagePreview(null);
+    setImageUrl('');
     setShowModal(true);
   };
 
@@ -331,6 +458,9 @@ const ProductsPage = () => {
       'inventory.quantity': product.inventory?.quantity ?? '',
       'inventory.lowStockThreshold': product.inventory?.lowStockThreshold ?? '10',
     });
+    const existingImg = getPrimaryImage(product);
+    setImagePreview(existingImg ? `http://localhost:5000${existingImg}` : null);
+    setImageUrl(existingImg || '');
     setIsEditing(true);
     setEditId(product._id);
     setFormError('');
@@ -340,16 +470,64 @@ const ProductsPage = () => {
 
   const closeModal = () => {
     setShowModal(false);
+    setImagePreview(null);
+    setImageUrl('');
     dispatch(clearCurrentProduct());
   };
 
   const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm(prev => {
+      const next = { ...prev, [name]: value };
+      // Reset subcategory when category changes
+      if (name === 'category') next.subcategory = '';
+      return next;
+    });
+  };
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Local preview
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+
+    // Upload to server
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const res = await axios.post('/api/uploads/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      setImageUrl(res.data.url);
+    } catch (err) {
+      setFormError('Image upload failed. Please try again.');
+      setImagePreview(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveImage = (e) => {
+    e.stopPropagation();
+    setImagePreview(null);
+    setImageUrl('');
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const handleSubmit = async () => {
-    if (!form.name || !form.price || form['inventory.quantity'] === '') {
-      setFormError('Name, price and quantity are required.');
+    if (!form.name || !form.description || !form.price || form['inventory.quantity'] === '') {
+      setFormError('Name, description, price and quantity are required.');
+      return;
+    }
+    if (!form.subcategory) {
+      setFormError('Please select a subcategory.');
       return;
     }
     setFormError('');
@@ -366,6 +544,10 @@ const ProductsPage = () => {
         lowStockThreshold: parseInt(form['inventory.lowStockThreshold']) || 10,
       },
     };
+
+    if (imageUrl) {
+      payload.images = [{ url: imageUrl, alt: form.name, isPrimary: true }];
+    }
 
     if (isEditing) {
       await dispatch(updateProduct({ id: editId, productData: payload }));
@@ -384,6 +566,8 @@ const ProductsPage = () => {
 
   const formatCurrency = (n) =>
     new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(n || 0);
+
+  const subcategories = SUBCATEGORY_MAP[form.category] || [];
 
   return (
     <PageContainer>
@@ -431,28 +615,41 @@ const ProductsPage = () => {
                 </td>
               </tr>
             ) : (
-              filtered.map(product => (
-                <Tr key={product._id}>
-                  <Td>
-                    <div style={{ fontWeight: 'var(--font-weight-semibold)' }}>{product.name}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--sub-text)', marginTop: '2px' }}>{product.unit}</div>
-                  </Td>
-                  <Td><CategoryBadge cat={product.category}>{product.category}</CategoryBadge></Td>
-                  <Td>{formatCurrency(product.price)}</Td>
-                  <Td>{product.inventory?.quantity ?? '—'}</Td>
-                  <Td><StatusBadge status={product.status}>{product.status}</StatusBadge></Td>
-                  <Td>
-                    <ActionsCell>
-                      <ActionBtn onClick={() => openEdit(product)} title="Edit">
-                        <FiEdit2 />
-                      </ActionBtn>
-                      <ActionBtn danger onClick={() => handleDelete(product._id)} title="Delete">
-                        <FiTrash2 />
-                      </ActionBtn>
-                    </ActionsCell>
-                  </Td>
-                </Tr>
-              ))
+              filtered.map(product => {
+                const imgUrl = getPrimaryImage(product);
+                return (
+                  <Tr key={product._id}>
+                    <Td>
+                      <ProductCell>
+                        <ProductThumb>
+                          {imgUrl
+                            ? <img src={`http://localhost:5000${imgUrl}`} alt={product.name} />
+                            : <span>{CATEGORY_EMOJI[product.category] || '📦'}</span>
+                          }
+                        </ProductThumb>
+                        <div>
+                          <div style={{ fontWeight: 'var(--font-weight-semibold)' }}>{product.name}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--sub-text)', marginTop: '2px' }}>{product.unit}</div>
+                        </div>
+                      </ProductCell>
+                    </Td>
+                    <Td><CategoryBadge cat={product.category}>{product.category}</CategoryBadge></Td>
+                    <Td>{formatCurrency(product.price)}</Td>
+                    <Td>{product.inventory?.quantity ?? '—'}</Td>
+                    <Td><StatusBadge status={product.status}>{product.status}</StatusBadge></Td>
+                    <Td>
+                      <ActionsCell>
+                        <ActionBtn onClick={() => openEdit(product)} title="Edit">
+                          <FiEdit2 />
+                        </ActionBtn>
+                        <ActionBtn danger onClick={() => handleDelete(product._id)} title="Delete">
+                          <FiTrash2 />
+                        </ActionBtn>
+                      </ActionsCell>
+                    </Td>
+                  </Tr>
+                );
+              })
             )}
           </tbody>
         </Table>
@@ -466,13 +663,41 @@ const ProductsPage = () => {
               <CloseBtn onClick={closeModal}><FiX /></CloseBtn>
             </ModalHeader>
 
+            {/* Image Upload */}
+            <FormGroup full style={{ marginBottom: 'var(--spacing-md)', gridColumn: 'auto' }}>
+              <label>Product Image</label>
+              {imagePreview ? (
+                <ImagePreview>
+                  <img src={imagePreview} alt="Preview" />
+                  {uploading && <UploadingOverlay>Uploading...</UploadingOverlay>}
+                  <RemoveImageBtn onClick={handleRemoveImage} title="Remove image">
+                    <FiX />
+                  </RemoveImageBtn>
+                </ImagePreview>
+              ) : (
+                <ImageUploadArea>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.webp"
+                    onChange={handleFileChange}
+                  />
+                  <UploadHint>
+                    <FiUploadCloud />
+                    <p>Click to upload or drag & drop</p>
+                    <span>JPG, PNG, WebP — max 5MB</span>
+                  </UploadHint>
+                </ImageUploadArea>
+              )}
+            </FormGroup>
+
             <FormGrid>
               <FormGroup full>
                 <label>Product Name *</label>
                 <input name="name" value={form.name} onChange={handleChange} placeholder="e.g. Fresh Whole Milk" />
               </FormGroup>
               <FormGroup full>
-                <label>Description</label>
+                <label>Description *</label>
                 <textarea name="description" value={form.description} onChange={handleChange} placeholder="Product description..." />
               </FormGroup>
               <FormGroup>
@@ -486,8 +711,13 @@ const ProductsPage = () => {
                 </select>
               </FormGroup>
               <FormGroup>
-                <label>Subcategory</label>
-                <input name="subcategory" value={form.subcategory} onChange={handleChange} placeholder="e.g. Whole Milk" />
+                <label>Subcategory *</label>
+                <select name="subcategory" value={form.subcategory} onChange={handleChange}>
+                  <option value="">Select subcategory</option>
+                  {subcategories.map(s => (
+                    <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+                  ))}
+                </select>
               </FormGroup>
               <FormGroup>
                 <label>Price (NGN) *</label>
@@ -519,7 +749,7 @@ const ProductsPage = () => {
 
             <ModalActions>
               <CancelBtn onClick={closeModal}>Cancel</CancelBtn>
-              <SaveBtn onClick={handleSubmit} disabled={loading}>
+              <SaveBtn onClick={handleSubmit} disabled={loading || uploading}>
                 {loading ? 'Saving...' : isEditing ? 'Save Changes' : 'Add Product'}
               </SaveBtn>
             </ModalActions>
