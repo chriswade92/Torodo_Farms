@@ -173,26 +173,30 @@ orderSchema.index({ paymentStatus: 1 });
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ 'delivery.estimatedDelivery': 1 });
 
-// Generate order number before saving
-orderSchema.pre('save', async function(next) {
-  if (this.isNew) {
+// Generate order number before validation (pre-validate runs before pre-save and before required checks)
+orderSchema.pre('validate', async function(next) {
+  if (this.isNew && !this.orderNumber) {
     const date = new Date();
     const year = date.getFullYear().toString().slice(-2);
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
-    
-    // Get count of orders for today
+
     const todayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
     const todayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
-    
+
     const orderCount = await this.constructor.countDocuments({
       createdAt: { $gte: todayStart, $lt: todayEnd }
     });
-    
+
     const sequence = (orderCount + 1).toString().padStart(4, '0');
     this.orderNumber = `TF${year}${month}${day}${sequence}`;
-    
-    // Add initial timeline entry
+  }
+  next();
+});
+
+// Add initial timeline entry before saving
+orderSchema.pre('save', function(next) {
+  if (this.isNew) {
     this.timeline.push({
       status: 'pending',
       note: 'Order created',

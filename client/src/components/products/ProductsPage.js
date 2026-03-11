@@ -565,7 +565,7 @@ const ProductsPage = () => {
   };
 
   const formatCurrency = (n) =>
-    new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(n || 0);
+    `${Math.round(n || 0).toLocaleString('fr-SN')} FCFA`;
 
   const subcategories = SUBCATEGORY_MAP[form.category] || [];
 
@@ -720,7 +720,7 @@ const ProductsPage = () => {
                 </select>
               </FormGroup>
               <FormGroup>
-                <label>Price (NGN) *</label>
+                <label>Price (FCFA) *</label>
                 <input name="price" type="number" min="0" value={form.price} onChange={handleChange} placeholder="0" />
               </FormGroup>
               <FormGroup>

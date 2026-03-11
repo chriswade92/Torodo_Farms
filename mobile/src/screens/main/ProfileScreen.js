@@ -14,7 +14,7 @@ import { Colors } from '../../constants/Colors';
 import Icon from 'react-native-vector-icons/Feather';
 import { updateProfile, logout } from '../../store/slices/authSlice';
 
-const ProfileScreen = () => {
+const ProfileScreen = ({ navigation }) => {
   const dispatch = useDispatch();
   const { user, loading } = useSelector(state => state.auth);
 
@@ -45,7 +45,7 @@ const ProfileScreen = () => {
           street: form.street.trim(),
           city: form.city.trim(),
           state: form.state.trim(),
-          country: 'Nigeria',
+          country: 'Senegal',
         },
       })).unwrap();
       setEditing(false);
@@ -195,10 +195,10 @@ const ProfileScreen = () => {
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Account</Text>
         <View style={styles.optionsList}>
-          <OptionRow icon="shopping-bag" label="My Orders" />
-          <OptionRow icon="bell" label="Notifications" />
-          <OptionRow icon="shield" label="Privacy Policy" />
-          <OptionRow icon="help-circle" label="Help & Support" />
+          <OptionRow icon="shopping-bag" label="My Orders" onPress={() => navigation.navigate('Orders')} />
+          <OptionRow icon="bell" label="Notifications" onPress={() => Alert.alert('Notifications', 'Push notifications coming soon!')} />
+          <OptionRow icon="shield" label="Privacy Policy" onPress={() => Alert.alert('Privacy Policy', 'Your data is safe with Torodo Farms.')} />
+          <OptionRow icon="help-circle" label="Help & Support" onPress={() => Alert.alert('Help & Support', 'Contact us at support@torodofarms.com')} />
         </View>
       </View>
 

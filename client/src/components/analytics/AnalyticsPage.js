@@ -148,7 +148,7 @@ const PERIODS = [
 ];
 
 const formatCurrency = (n) =>
-  new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(n || 0);
+  `${Math.round(n || 0).toLocaleString('fr-SN')} FCFA`;
 
 const CATEGORY_COLORS = {
   dairy: 'rgba(100,207,246,0.7)',
@@ -180,8 +180,8 @@ const AnalyticsPage = () => {
         labels: categoryAnalytics.map(c => c._id || c.category),
         datasets: [
           {
-            label: 'Revenue (NGN)',
-            data: categoryAnalytics.map(c => c.revenue || 0),
+            label: 'Revenue (FCFA)',
+            data: categoryAnalytics.map(c => c.totalRevenue || 0),
             backgroundColor: categoryAnalytics.map(c =>
               CATEGORY_COLORS[c._id] || CATEGORY_COLORS[c.category] || 'rgba(100,207,246,0.7)'
             ),
@@ -206,7 +206,7 @@ const AnalyticsPage = () => {
         beginAtZero: true,
         grid: { color: '#F0F0F0' },
         ticks: {
-          callback: val => `₦${(val / 1000).toFixed(0)}k`,
+          callback: val => `${(val / 1000).toFixed(0)}k FCFA`,
         },
       },
       x: { grid: { display: false } },
@@ -263,7 +263,7 @@ const AnalyticsPage = () => {
                       <div style={{ fontSize: '12px', color: 'var(--sub-text)', textTransform: 'capitalize' }}>{p.category}</div>
                     </Td>
                     <Td>{p.totalSold || 0} units</Td>
-                    <Td style={{ fontWeight: 'var(--font-weight-semibold)' }}>{formatCurrency(p.revenue)}</Td>
+                    <Td style={{ fontWeight: 'var(--font-weight-semibold)' }}>{formatCurrency(p.totalRevenue)}</Td>
                   </Tr>
                 ))}
               </tbody>
@@ -296,7 +296,7 @@ const AnalyticsPage = () => {
                       <div style={{ fontWeight: 'var(--font-weight-semibold)' }}>{c.name}</div>
                       <div style={{ fontSize: '12px', color: 'var(--sub-text)' }}>{c.email}</div>
                     </Td>
-                    <Td>{c.orderCount || 0}</Td>
+                    <Td>{c.totalOrders || 0}</Td>
                     <Td style={{ fontWeight: 'var(--font-weight-semibold)' }}>{formatCurrency(c.totalSpent)}</Td>
                   </Tr>
                 ))}
@@ -327,7 +327,7 @@ const AnalyticsPage = () => {
                       {cat._id || cat.category}
                     </Td>
                     <Td>{cat.totalProducts || 0}</Td>
-                    <Td style={{ color: 'var(--accent-green)' }}>{cat.inStock || 0}</Td>
+                    <Td style={{ color: 'var(--accent-green)' }}>{cat.totalStock || 0}</Td>
                     <Td>
                       <span style={{ color: 'var(--accent-orange)', marginRight: '6px' }}>
                         {cat.lowStock || 0}

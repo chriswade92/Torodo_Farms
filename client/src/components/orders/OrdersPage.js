@@ -201,7 +201,7 @@ const STATUS_OPTIONS = ['pending', 'confirmed', 'processing', 'shipped', 'delive
 const FILTER_TABS = ['all', 'pending', 'confirmed', 'processing', 'shipped', 'delivered', 'cancelled'];
 
 const formatCurrency = (n) =>
-  new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(n || 0);
+  `${Math.round(n || 0).toLocaleString('fr-SN')} FCFA`;
 
 const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';

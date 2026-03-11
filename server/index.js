@@ -23,6 +23,9 @@ const uploadRoutes = require('./routes/uploads');
 app.use(helmet());
 app.use(compression());
 
+// Trust proxy — needed for local network + rate limiter to work correctly
+app.set('trust proxy', 1);
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -32,9 +35,9 @@ app.use(limiter);
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://yourdomain.com'] 
-    : ['http://localhost:3000', 'http://localhost:3001'],
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://yourdomain.com']
+    : true, // Allow all origins in development (local network testing)
   credentials: true
 }));
 

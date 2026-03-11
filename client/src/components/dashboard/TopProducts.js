@@ -123,14 +123,8 @@ const NoDataMessage = styled.div`
   }
 `;
 
-const formatCurrency = (amount) => {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  }).format(amount || 0);
-};
+const formatCurrency = (amount) =>
+  `${Math.round(amount || 0).toLocaleString('fr-SN')} FCFA`;
 
 const formatNumber = (num) => {
   return new Intl.NumberFormat('en-NG').format(num || 0);

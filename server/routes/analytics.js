@@ -16,30 +16,30 @@ router.get('/dashboard', adminAuth, async (req, res) => {
     const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
 
     const analytics = await Promise.all([
-      // Total revenue
+      // Total revenue (all non-cancelled orders — COD is paid on delivery)
       Order.aggregate([
-        { $match: { paymentStatus: 'paid' } },
+        { $match: { status: { $nin: ['cancelled', 'refunded'] } } },
         { $group: { _id: null, total: { $sum: '$total' } } }
       ]),
-      
+
       // Today's revenue
       Order.aggregate([
-        { 
-          $match: { 
+        {
+          $match: {
             createdAt: { $gte: today },
-            paymentStatus: 'paid'
-          } 
+            status: { $nin: ['cancelled', 'refunded'] }
+          }
         },
         { $group: { _id: null, total: { $sum: '$total' } } }
       ]),
-      
+
       // This month's revenue
       Order.aggregate([
-        { 
-          $match: { 
+        {
+          $match: {
             createdAt: { $gte: thisMonth },
-            paymentStatus: 'paid'
-          } 
+            status: { $nin: ['cancelled', 'refunded'] }
+          }
         },
         { $group: { _id: null, total: { $sum: '$total' } } }
       ]),
@@ -139,7 +139,7 @@ router.get('/sales', adminAuth, async (req, res) => {
       {
         $match: {
           createdAt: { $gte: startDate },
-          paymentStatus: 'paid'
+          status: { $nin: ['cancelled', 'refunded'] }
         }
       },
       {
@@ -168,6 +168,7 @@ router.get('/sales', adminAuth, async (req, res) => {
 router.get('/products', adminAuth, async (req, res) => {
   try {
     const productAnalytics = await Order.aggregate([
+      { $match: { status: { $nin: ['cancelled', 'refunded'] } } },
       { $unwind: '$items' },
       {
         $group: {
@@ -213,6 +214,7 @@ router.get('/products', adminAuth, async (req, res) => {
 router.get('/categories', adminAuth, async (req, res) => {
   try {
     const categoryAnalytics = await Order.aggregate([
+      { $match: { status: { $nin: ['cancelled', 'refunded'] } } },
       { $unwind: '$items' },
       {
         $lookup: {
