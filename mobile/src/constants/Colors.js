@@ -1,41 +1,47 @@
 export const Colors = {
-  // Primary Colors
-  primary: '#64CFF6',
-  secondary: '#FFFFFF',
-  background: '#F8F9FA',
-  
-  // Text Colors
-  text: '#1A1A1A',
-  subText: '#888888',
-  
-  // Accent Colors
-  accentGreen: '#82D173',
-  accentPurple: '#A97CFF',
-  accentOrange: '#F7A655',
-  accentPink: '#FF5E7E',
+  // Brand — derived from Torodo Farms logo
+  primary: '#76C326',        // Logo lime green
+  primaryDark: '#5A9A1A',    // Darker green for depth / pressed states
+  primaryLight: '#EBF7D6',   // Very light green for tags / chips
+  dark: '#111800',           // Near-black (logo background)
+
+  // Surfaces
+  background: '#F5F9F0',     // Slightly green-tinted off-white
+  surface: '#FFFFFF',
+  secondary: '#FFFFFF',      // Kept for backwards-compat
+
+  // Text
+  text: '#1A2E00',
+  subText: '#7A8A70',
+
+  // Accents
+  accentGreen: '#76C326',
+  accentOrange: '#FF6B35',
   accentYellow: '#FFD93D',
-  
-  // Status Colors
-  success: '#82D173',
-  warning: '#F7A655',
-  error: '#FF5E7E',
-  info: '#64CFF6',
-  
-  // Border Colors
-  border: '#E0E0E0',
-  borderLight: '#F0F0F0',
-  
-  // Shadow Colors
-  shadow: 'rgba(0, 0, 0, 0.1)',
-  shadowDark: 'rgba(0, 0, 0, 0.2)',
-  
-  // Overlay Colors
+  accentPurple: '#AB47BC',
+  accentPink: '#FF4081',
+
+  // Status
+  success: '#76C326',
+  warning: '#FFA502',
+  error: '#FF4757',
+  info: '#29B6F6',
+
+  // Borders
+  border: '#D8EDBB',
+  borderLight: '#EAF5D4',
+
+  // Shadows
+  shadow: 'rgba(118, 195, 38, 0.12)',
+  shadowDark: 'rgba(0, 0, 0, 0.15)',
+
+  // Overlay
   overlay: 'rgba(0, 0, 0, 0.5)',
-  
-  // Category Colors
-  dairy: '#64CFF6',
-  vegetables: '#82D173',
-  fruits: '#F7A655',
-  beverages: '#A97CFF',
+
+  // Category chips
+  dairy: '#29B6F6',
+  vegetables: '#76C326',
+  fruits: '#FF6B35',
+  beverages: '#AB47BC',
   snacks: '#FFD93D',
-}; 
+};

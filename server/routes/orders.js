@@ -9,7 +9,7 @@ const router = express.Router();
 // @access  Private
 router.post('/', auth, async (req, res) => {
   try {
-    const { items, shippingAddress, paymentMethod, deliveryMethod, notes } = req.body;
+    const { items, shippingAddress, paymentMethod, deliveryMethod, deliveryFee, deliveryZone, notes } = req.body;
 
     // Validate items
     if (!items || items.length === 0) {
@@ -40,7 +40,7 @@ router.post('/', auth, async (req, res) => {
         name: product.name,
         price: product.price,
         quantity: item.quantity,
-        unit: product.inventory.unit,
+        unit: product.inventory.unit || 'pieces',
         total: itemTotal,
         image: product.images[0]?.url || ''
       });
@@ -62,20 +62,23 @@ router.post('/', auth, async (req, res) => {
         estimatedDelivery.setDate(estimatedDelivery.getDate() + 3);
     }
 
+    // Use client-provided delivery fee (zone-based) or fall back to method-based
+    const shipping = deliveryFee || (deliveryMethod === 'express' ? 2000 : deliveryMethod === 'same_day' ? 3000 : 1000);
+
     // Create order
     const order = new Order({
       customer: req.user.userId,
       items: processedItems,
       subtotal,
-      shipping: deliveryMethod === 'express' ? 500 : deliveryMethod === 'same_day' ? 1000 : 200,
-      total: subtotal + (deliveryMethod === 'express' ? 500 : deliveryMethod === 'same_day' ? 1000 : 200),
+      shipping,
+      total: subtotal + shipping,
       paymentMethod,
       shippingAddress,
       delivery: {
         method: deliveryMethod,
         estimatedDelivery
       },
-      notes: { customer: notes }
+      notes: { customer: deliveryZone ? `Zone: ${deliveryZone}${notes ? ' | ' + notes : ''}` : notes }
     });
 
     await order.save();

@@ -69,8 +69,8 @@ const orderSchema = new mongoose.Schema({
   },
   currency: {
     type: String,
-    default: 'NGN',
-    enum: ['NGN', 'USD', 'EUR']
+    default: 'XOF',
+    enum: ['XOF', 'NGN', 'USD', 'EUR']
   },
   status: {
     type: String,
@@ -84,7 +84,7 @@ const orderSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ['card', 'bank_transfer', 'cash_on_delivery', 'mobile_money'],
+    enum: ['card', 'bank_transfer', 'cash_on_delivery', 'mobile_money', 'wave', 'orange_money'],
     required: true
   },
   paymentDetails: {

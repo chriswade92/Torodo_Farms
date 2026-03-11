@@ -14,6 +14,7 @@ import {
   FiUser
 } from 'react-icons/fi';
 import { logout } from '../../store/slices/authSlice';
+import logo from '../../assets/logo.jpg';
 
 const LayoutContainer = styled.div`
   display: flex;
@@ -38,20 +39,39 @@ const Sidebar = styled.div`
 `;
 
 const SidebarHeader = styled.div`
-  padding: var(--spacing-xl);
+  padding: var(--spacing-lg) var(--spacing-xl);
   border-bottom: 1px solid #E0E0E0;
-  
+  background: #111800;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border-radius: 10px;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+  }
+
   h2 {
-    color: var(--primary);
-    font-size: 20px;
+    color: #76C326;
+    font-size: 18px;
     font-weight: var(--font-weight-bold);
     margin: 0;
+    letter-spacing: 0.3px;
   }
-  
+
   p {
-    color: var(--sub-text);
-    font-size: 12px;
-    margin: var(--spacing-xs) 0 0 0;
+    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    margin: 2px 0 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
   }
 `;
 
@@ -81,7 +101,7 @@ const NavLink = styled.button`
   text-decoration: none;
   
   &:hover {
-    background: ${props => props.active ? 'var(--primary)' : 'rgba(100, 207, 246, 0.1)'};
+    background: ${props => props.active ? 'var(--primary)' : 'rgba(118, 195, 38, 0.1)'};
     color: ${props => props.active ? 'var(--secondary)' : 'var(--primary)'};
   }
   
@@ -255,8 +275,11 @@ const Layout = () => {
       
       <Sidebar isOpen={sidebarOpen}>
         <SidebarHeader>
-          <h2>Torodo Farms</h2>
-          <p>Admin Dashboard</p>
+          <img src={logo} alt="Torodo Farms" />
+          <div className="brand">
+            <h2>Torodo Farms</h2>
+            <p>Admin Dashboard</p>
+          </div>
         </SidebarHeader>
         
         <NavMenu>

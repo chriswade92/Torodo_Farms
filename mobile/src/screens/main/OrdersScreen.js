@@ -32,7 +32,7 @@ const STATUS_ICONS = {
 };
 
 const formatCurrency = (amount) =>
-  new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount || 0);
+  `${Math.round(amount || 0).toLocaleString('fr-SN')} FCFA`;
 
 const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString('en-NG', { day: 'numeric', month: 'short', year: 'numeric' }) : '';

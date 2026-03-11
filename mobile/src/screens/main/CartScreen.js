@@ -3,12 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   TextInput,
   ScrollView,
   Alert,
   ActivityIndicator,
+  Linking,
+  Image,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { Colors } from '../../constants/Colors';
@@ -16,10 +17,78 @@ import Icon from 'react-native-vector-icons/Feather';
 import { removeFromCart, updateQuantity, clearCart } from '../../store/slices/cartSlice';
 import { createOrder } from '../../store/slices/orderSlice';
 
-const DELIVERY_FEE = 500;
+const WAVE_PAYMENT_URL = 'https://pay.wave.com/m/M_sn_R_TKbBC1MtLt/c/sn/';
+
+// Official brand colors
+const WAVE_COLOR = '#1DC8FF';
+const ORANGE_COLOR = '#FF7900';
+
+const PAYMENT_METHODS = [
+  {
+    id: 'cash_on_delivery',
+    label: 'Cash on Delivery',
+    description: 'Pay when your order arrives',
+    logoType: 'icon',
+    icon: 'dollar-sign',
+    color: Colors.accentGreen,
+    available: true,
+  },
+  {
+    id: 'wave',
+    label: 'Wave',
+    description: 'Pay with Wave mobile money',
+    logoType: 'image',
+    logoSource: require('../../pictures/wavelogo.png'),
+    logoBg: '#29B4E8',
+    color: WAVE_COLOR,
+    available: true,
+  },
+  {
+    id: 'orange_money',
+    label: 'Orange Money',
+    description: 'Coming soon',
+    logoType: 'image',
+    logoSource: require('../../pictures/orangelogo.png'),
+    logoBg: '#FFFFFF',
+    color: ORANGE_COLOR,
+    available: false,
+  },
+];
+
+const PaymentLogo = ({ method, size = 44 }) => {
+  if (method.logoType === 'image') {
+    return (
+      <View style={[
+        styles.paymentIconBox,
+        { backgroundColor: method.logoBg, width: size, height: size },
+      ]}>
+        <Image
+          source={method.logoSource}
+          style={{ width: size - 8, height: size - 8 }}
+          resizeMode="contain"
+        />
+      </View>
+    );
+  }
+  return (
+    <View style={[
+      styles.paymentIconBox,
+      { backgroundColor: method.color + '20', width: size, height: size },
+    ]}>
+      <Icon name={method.icon} size={size * 0.48} color={method.color} />
+    </View>
+  );
+};
+
+const DELIVERY_ZONES = [
+  { id: 'zone1', label: 'Zone 1 — Plateau / Centre Ville',  fee: 1000 },
+  { id: 'zone2', label: 'Zone 2 — Médina / Grand Dakar',    fee: 1500 },
+  { id: 'zone3', label: 'Zone 3 — Pikine / Guédiawaye',     fee: 2000 },
+  { id: 'zone4', label: 'Zone 4 — Rufisque / Périphérie',   fee: 2500 },
+];
 
 const formatCurrency = (amount) =>
-  new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount || 0);
+  `${Math.round(amount || 0).toLocaleString('fr-SN')} FCFA`;
 
 const CartScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -28,6 +97,8 @@ const CartScreen = ({ navigation }) => {
   const { loading } = useSelector(state => state.orders);
 
   const [showAddress, setShowAddress] = useState(false);
+  const [selectedZone, setSelectedZone] = useState(DELIVERY_ZONES[0]);
+  const [selectedPayment, setSelectedPayment] = useState(PAYMENT_METHODS[0]);
   const [address, setAddress] = useState({
     street: user?.address?.street || '',
     city: user?.address?.city || '',
@@ -51,39 +122,52 @@ const CartScreen = ({ navigation }) => {
     if (!validateAddress()) return;
 
     const orderItems = items.map(item => ({
-      product: item._id,
-      name: item.name,
-      price: item.price,
+      productId: item._id,
       quantity: item.quantity,
-      unit: item.unit,
-      total: item.price * item.quantity,
     }));
 
     const orderData = {
       items: orderItems,
-      subtotal: total,
-      shipping: DELIVERY_FEE,
-      total: total + DELIVERY_FEE,
-      paymentMethod: 'cash_on_delivery',
+      paymentMethod: selectedPayment.id,
+      deliveryMethod: 'standard',
+      deliveryFee: selectedZone.fee,
+      deliveryZone: selectedZone.label,
       shippingAddress: {
         street: address.street,
         city: address.city,
         state: address.state,
-        country: 'Nigeria',
+        country: 'Senegal',
         phone: address.phone,
         instructions: address.instructions,
       },
-      delivery: { method: 'standard' },
     };
 
     try {
       await dispatch(createOrder(orderData)).unwrap();
       dispatch(clearCart());
-      Alert.alert(
-        'Order Placed!',
-        'Your order has been placed successfully. Pay on delivery.',
-        [{ text: 'View Orders', onPress: () => navigation.navigate('Orders') }]
-      );
+
+      if (selectedPayment.id === 'wave') {
+        Alert.alert(
+          'Order Placed!',
+          'Your order has been confirmed. Complete your payment via Wave.',
+          [
+            {
+              text: 'Pay with Wave',
+              onPress: () => {
+                Linking.openURL(WAVE_PAYMENT_URL);
+                navigation.navigate('Orders');
+              },
+            },
+            { text: 'Pay Later', onPress: () => navigation.navigate('Orders') },
+          ]
+        );
+      } else {
+        Alert.alert(
+          'Order Placed!',
+          'Your order has been placed successfully. Pay cash on delivery.',
+          [{ text: 'View Orders', onPress: () => navigation.navigate('Orders') }]
+        );
+      }
     } catch (error) {
       Alert.alert('Order Failed', error || 'Something went wrong. Please try again.');
     }
@@ -157,25 +241,61 @@ const CartScreen = ({ navigation }) => {
       {/* Order Summary */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Order Summary</Text>
-        <View style={styles.summaryCard}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(total)}</Text>
-          </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Delivery Fee</Text>
-            <Text style={styles.summaryValue}>{formatCurrency(DELIVERY_FEE)}</Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={styles.summaryRow}>
-            <Text style={styles.totalLabel}>Total</Text>
-            <Text style={styles.totalValue}>{formatCurrency(total + DELIVERY_FEE)}</Text>
-          </View>
-          <View style={styles.paymentMethod}>
-            <Icon name="truck" size={16} color={Colors.accentGreen} />
-            <Text style={styles.paymentMethodText}>Cash on Delivery</Text>
-          </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Subtotal</Text>
+          <Text style={styles.summaryValue}>{formatCurrency(total)}</Text>
         </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Delivery ({selectedZone.id.toUpperCase()})</Text>
+          <Text style={styles.summaryValue}>{formatCurrency(selectedZone.fee)}</Text>
+        </View>
+        <View style={styles.divider} />
+        <View style={styles.summaryRow}>
+          <Text style={styles.totalLabel}>Total</Text>
+          <Text style={styles.totalValue}>{formatCurrency(total + selectedZone.fee)}</Text>
+        </View>
+      </View>
+
+      {/* Payment Method */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Payment Method</Text>
+        {PAYMENT_METHODS.map(method => (
+          <TouchableOpacity
+            key={method.id}
+            style={[
+              styles.paymentOption,
+              selectedPayment.id === method.id && styles.paymentOptionSelected,
+              selectedPayment.id === method.id && { borderColor: method.color },
+              !method.available && styles.paymentOptionDisabled,
+            ]}
+            onPress={() => method.available && setSelectedPayment(method)}
+            activeOpacity={method.available ? 0.7 : 1}
+          >
+            <PaymentLogo method={method} size={44} />
+            <View style={styles.paymentInfo}>
+              <Text style={[styles.paymentLabel, !method.available && styles.paymentLabelDisabled]}>
+                {method.label}
+              </Text>
+              <Text style={styles.paymentDesc}>{method.description}</Text>
+            </View>
+            <View style={[styles.paymentRadio, selectedPayment.id === method.id && { borderColor: method.color }]}>
+              {selectedPayment.id === method.id
+                ? <View style={[styles.paymentRadioInner, { backgroundColor: method.color }]} />
+                : null}
+            </View>
+          </TouchableOpacity>
+        ))}
+
+        {selectedPayment.id === 'wave' && (
+          <TouchableOpacity
+            style={styles.wavePayButton}
+            onPress={() => Linking.openURL(WAVE_PAYMENT_URL)}
+          >
+            <Text style={styles.wavePenguin}>🐧</Text>
+            <Text style={styles.wavePayText}>Open Wave to pay TORODO FARMS</Text>
+            <Icon name="external-link" size={14} color={WAVE_COLOR} />
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* Delivery Address */}
@@ -193,6 +313,26 @@ const CartScreen = ({ navigation }) => {
 
         {showAddress && (
           <View style={styles.addressForm}>
+            {/* Delivery Zone */}
+            <Text style={styles.zoneLabel}>Delivery Zone (Dakar)</Text>
+            {DELIVERY_ZONES.map(zone => (
+              <TouchableOpacity
+                key={zone.id}
+                style={[styles.zoneOption, selectedZone.id === zone.id && styles.zoneOptionSelected]}
+                onPress={() => setSelectedZone(zone)}
+              >
+                <View style={styles.zoneRadio}>
+                  {selectedZone.id === zone.id && <View style={styles.zoneRadioInner} />}
+                </View>
+                <Text style={[styles.zoneOptionText, selectedZone.id === zone.id && styles.zoneOptionTextSelected]}>
+                  {zone.label}
+                </Text>
+                <Text style={[styles.zoneFee, selectedZone.id === zone.id && styles.zoneFeeSelected]}>
+                  {formatCurrency(zone.fee)}
+                </Text>
+              </TouchableOpacity>
+            ))}
+
             <View style={[styles.inputRow, addressErrors.street && styles.inputError]}>
               <TextInput
                 style={styles.input}
@@ -272,7 +412,7 @@ const CartScreen = ({ navigation }) => {
             <>
               <Icon name="check-circle" size={20} color={Colors.secondary} />
               <Text style={styles.orderButtonText}>
-                {showAddress ? `Place Order · ${formatCurrency(total + DELIVERY_FEE)}` : 'Enter Delivery Address'}
+                {showAddress ? `Place Order · ${formatCurrency(total + selectedZone.fee)}` : 'Enter Delivery Address'}
               </Text>
             </>
           )}
@@ -395,6 +535,42 @@ const styles = StyleSheet.create({
   inputError: { borderColor: Colors.error },
   input: { fontSize: 14, color: Colors.text },
   errorText: { fontSize: 12, color: Colors.error, marginTop: -4 },
+  zoneLabel: { fontSize: 14, fontWeight: '600', color: Colors.text, marginBottom: 8 },
+  zoneOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    marginBottom: 8,
+    backgroundColor: Colors.background,
+  },
+  zoneOptionSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+  },
+  zoneRadio: {
+    width: 18,
+    height: 18,
+    borderRadius: 9,
+    borderWidth: 2,
+    borderColor: Colors.subText,
+    marginRight: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  zoneRadioInner: {
+    width: 9,
+    height: 9,
+    borderRadius: 5,
+    backgroundColor: Colors.primary,
+  },
+  zoneOptionText: { flex: 1, fontSize: 13, color: Colors.subText },
+  zoneOptionTextSelected: { color: Colors.text, fontWeight: '600' },
+  zoneFee: { fontSize: 13, fontWeight: '600', color: Colors.subText },
+  zoneFeeSelected: { color: Colors.primary },
   footer: { padding: 16, paddingBottom: 32 },
   orderButton: {
     backgroundColor: Colors.primary,
@@ -412,6 +588,65 @@ const styles = StyleSheet.create({
   },
   orderButtonDisabled: { opacity: 0.6 },
   orderButtonText: { color: Colors.secondary, fontSize: 16, fontWeight: '600' },
+
+  // Payment method styles
+  paymentOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    marginBottom: 10,
+    backgroundColor: Colors.background,
+    gap: 12,
+  },
+  paymentOptionSelected: {
+    borderColor: Colors.primary,
+    backgroundColor: Colors.primaryLight,
+  },
+  paymentOptionDisabled: {
+    opacity: 0.45,
+  },
+  paymentIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  paymentInfo: { flex: 1 },
+  paymentLabel: { fontSize: 14, fontWeight: '600', color: Colors.text },
+  paymentLabelDisabled: { color: Colors.subText },
+  paymentDesc: { fontSize: 12, color: Colors.subText, marginTop: 2 },
+  paymentRadio: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: Colors.subText,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  paymentRadioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  wavePayButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+    padding: 12,
+    borderRadius: 10,
+    backgroundColor: '#1DC8FF12',
+    borderWidth: 1,
+    borderColor: '#1DC8FF40',
+    justifyContent: 'center',
+  },
+  wavePenguin: { fontSize: 16 },
+  wavePayText: { fontSize: 14, color: WAVE_COLOR, fontWeight: '600' },
 });
 
 export default CartScreen;

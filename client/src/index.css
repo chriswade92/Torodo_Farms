@@ -7,17 +7,20 @@
 }
 
 :root {
-  /* Color Palette from Milkapp Visual Design Profile */
-  --primary: #64CFF6;
+  /* Torodo Farms Brand Colors — derived from logo */
+  --primary: #76C326;          /* Logo lime green */
+  --primary-dark: #5A9A1A;     /* Darker green for hover states */
+  --primary-light: #EBF7D6;    /* Light green for backgrounds/chips */
+  --dark: #111800;             /* Near-black (logo background) */
   --secondary: #FFFFFF;
-  --accent-yellow: #FFC700;
-  --accent-pink: #FF5E7E;
-  --accent-green: #82D173;
-  --accent-orange: #F7A655;
-  --accent-purple: #A97CFF;
-  --background: #F7FCFE;
-  --text: #333333;
-  --sub-text: #888888;
+  --accent-yellow: #FFD93D;
+  --accent-pink: #FF4081;
+  --accent-green: #76C326;
+  --accent-orange: #FF6B35;
+  --accent-purple: #AB47BC;
+  --background: #F5F9F0;       /* Slightly green-tinted off-white */
+  --text: #1A2E00;
+  --sub-text: #7A8A70;
   
   /* Typography */
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
@@ -109,7 +112,7 @@ input, textarea, select {
 input:focus, textarea:focus, select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(100, 207, 246, 0.1);
+  box-shadow: 0 0 0 3px rgba(118, 195, 38, 0.15);
 }
 
 /* Utility Classes */
@@ -151,7 +154,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .btn-primary:hover {
-  background: #5BB8E0;
+  background: var(--primary-dark);
   transform: translateY(-1px);
   box-shadow: var(--shadow-md);
 }
@@ -282,6 +285,11 @@ input:focus, textarea:focus, select:focus {
 }
 
 .badge-info {
-  background: rgba(100, 207, 246, 0.1);
-  color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary-dark);
+}
+
+.badge-primary {
+  background: var(--primary-light);
+  color: var(--primary-dark);
 } 

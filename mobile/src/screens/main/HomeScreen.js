@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { fetchProducts } from '../../store/slices/productSlice';
 import { addToCart } from '../../store/slices/cartSlice';
 import { UPLOADS_BASE_URL } from '../../config/api';
+import { getLocalProductImage, HERO_IMAGE } from '../../constants/productImages';
 
 const CATEGORIES = [
   { id: 'all', name: 'All', icon: '🌿', color: Colors.primary },
@@ -30,16 +31,21 @@ const getCategoryEmoji = (category) => {
   return found ? found.icon : '📦';
 };
 
-const getProductImageUrl = (product) => {
-  if (!product?.images?.length) return null;
-  const primary = product.images.find(img => img.isPrimary);
-  const url = primary?.url || product.images[0]?.url;
-  if (!url) return null;
-  return `${UPLOADS_BASE_URL}${url}`;
+const getProductImageSource = (product) => {
+  // 1. Try server image URL
+  if (product?.images?.length) {
+    const primary = product.images.find(img => img.isPrimary);
+    const url = primary?.url || product.images[0]?.url;
+    if (url) return { type: 'uri', source: { uri: `${UPLOADS_BASE_URL}${url}` } };
+  }
+  // 2. Fall back to local bundled image
+  const local = getLocalProductImage(product);
+  if (local) return { type: 'local', source: local };
+  return null;
 };
 
 const formatCurrency = (amount) =>
-  new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount || 0);
+  `${Math.round(amount || 0).toLocaleString('fr-SN')} FCFA`;
 
 const HomeScreen = ({ navigation }) => {
   const dispatch = useDispatch();
@@ -100,15 +106,13 @@ const HomeScreen = ({ navigation }) => {
       {/* Promo Banner */}
       <View style={styles.promoBanner}>
         <View style={styles.promoContent}>
-          <Text style={styles.promoTitle}>Fresh from the Farm</Text>
-          <Text style={styles.promoSubtitle}>Dairy & vegetables delivered daily</Text>
+          <Text style={styles.promoLabel}>Sénega'lait</Text>
+          <Text style={styles.promoTitle}>100% lait de vache{'\n'}frais du terroir</Text>
           <TouchableOpacity style={styles.promoButton} onPress={() => navigation.navigate('Products')}>
-            <Text style={styles.promoButtonText}>Shop Now</Text>
+            <Text style={styles.promoButtonText}>Commander →</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.promoIcon}>
-          <Icon name="truck" size={40} color={Colors.secondary} />
-        </View>
+        <Image source={HERO_IMAGE} style={styles.promoBannerImage} resizeMode="contain" />
       </View>
 
       {/* Categories */}
@@ -159,12 +163,12 @@ const HomeScreen = ({ navigation }) => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.productsList}
             renderItem={({ item }) => {
-              const imgUrl = getProductImageUrl(item);
+              const img = getProductImageSource(item);
               return (
               <View style={styles.productCard}>
                 <View style={styles.productImage}>
-                  {imgUrl
-                    ? <Image source={{ uri: imgUrl }} style={styles.productImageReal} resizeMode="cover" />
+                  {img
+                    ? <Image source={img.source} style={styles.productImageReal} resizeMode="cover" />
                     : <Text style={styles.productEmoji}>{getCategoryEmoji(item.category)}</Text>
                   }
                 </View>
@@ -228,32 +232,32 @@ const styles = StyleSheet.create({
   },
   searchText: { marginLeft: 12, fontSize: 16, color: Colors.subText },
   promoBanner: {
-    backgroundColor: Colors.primary,
+    backgroundColor: Colors.dark,
     borderRadius: 16,
     marginHorizontal: 20,
     marginBottom: 24,
-    padding: 20,
+    paddingLeft: 20,
+    paddingVertical: 20,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-end',
+    overflow: 'hidden',
+    minHeight: 130,
   },
-  promoContent: { flex: 1 },
-  promoTitle: { fontSize: 20, fontWeight: 'bold', color: Colors.secondary, marginBottom: 4 },
-  promoSubtitle: { fontSize: 14, color: Colors.secondary + 'CC', marginBottom: 12 },
+  promoContent: { flex: 1, paddingRight: 8 },
+  promoLabel: { fontSize: 11, color: Colors.primary, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 },
+  promoTitle: { fontSize: 17, fontWeight: 'bold', color: Colors.secondary, marginBottom: 14, lineHeight: 23 },
   promoButton: {
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.primary,
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 8,
     alignSelf: 'flex-start',
   },
-  promoButtonText: { color: Colors.primary, fontSize: 14, fontWeight: '600' },
-  promoIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: Colors.primary + '40',
-    justifyContent: 'center',
-    alignItems: 'center',
+  promoButtonText: { color: Colors.secondary, fontSize: 13, fontWeight: '700' },
+  promoBannerImage: {
+    width: 110,
+    height: 140,
+    marginBottom: -20,
   },
   section: { marginBottom: 24 },
   sectionHeader: {

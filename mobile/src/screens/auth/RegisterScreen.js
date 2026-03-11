@@ -9,6 +9,7 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { register } from '../../store/slices/authSlice';
@@ -68,18 +69,23 @@ const RegisterScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+
+        {/* Dark header with logo */}
         <View style={styles.header}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Icon name="arrow-left" size={22} color={Colors.text} />
+            <Icon name="arrow-left" size={22} color={Colors.primaryLight} />
           </TouchableOpacity>
-          <View style={styles.logoContainer}>
-            <Icon name="droplet" size={50} color={Colors.primary} />
-          </View>
+          <Image
+            source={require('../../pictures/IMG-20250404-WA0000.jpg')}
+            style={styles.logo}
+            resizeMode="contain"
+          />
           <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join Torodo Farms for fresh daily deliveries</Text>
+          <Text style={styles.tagline}>Join Torodo Farms for fresh daily deliveries</Text>
         </View>
 
         <View style={styles.formContainer}>
+
           <View style={[styles.inputContainer, errors.name && styles.inputError]}>
             <Icon name="user" size={20} color={Colors.subText} style={styles.inputIcon} />
             <TextInput
@@ -179,27 +185,49 @@ const RegisterScreen = ({ navigation }) => {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scrollContainer: { flexGrow: 1, paddingHorizontal: 24 },
-  header: { alignItems: 'center', paddingTop: 50, paddingBottom: 28, position: 'relative' },
-  backBtn: { position: 'absolute', top: 50, left: 0, padding: 8 },
-  logoContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.primary + '20',
-    justifyContent: 'center',
+  scrollContainer: { flexGrow: 1 },
+  header: {
+    backgroundColor: Colors.dark,
     alignItems: 'center',
-    marginBottom: 16,
+    paddingTop: 56,
+    paddingBottom: 28,
+    paddingHorizontal: 24,
+    position: 'relative',
   },
-  title: { fontSize: 26, fontWeight: 'bold', color: Colors.text, marginBottom: 8 },
-  subtitle: { fontSize: 15, color: Colors.subText, textAlign: 'center', lineHeight: 22 },
-  formContainer: { paddingBottom: 40 },
+  backBtn: {
+    position: 'absolute',
+    top: 56,
+    left: 20,
+    padding: 8,
+    zIndex: 1,
+  },
+  logo: {
+    width: 180,
+    height: 90,
+    marginBottom: 12,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
+    marginBottom: 4,
+  },
+  tagline: {
+    fontSize: 13,
+    color: Colors.primaryLight,
+    textAlign: 'center',
+  },
+  formContainer: {
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 40,
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.secondary,
+    backgroundColor: Colors.surface,
     borderRadius: 12,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: Colors.border,
     marginBottom: 4,
     paddingHorizontal: 16,
@@ -212,7 +240,7 @@ const styles = StyleSheet.create({
   errorText: { fontSize: 12, color: Colors.error, marginBottom: 10, marginLeft: 4 },
   registerButton: {
     backgroundColor: Colors.primary,
-    borderRadius: 12,
+    borderRadius: 14,
     height: 56,
     justifyContent: 'center',
     alignItems: 'center',
@@ -220,15 +248,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
     elevation: 8,
   },
   buttonDisabled: { opacity: 0.6 },
-  registerButtonText: { color: Colors.secondary, fontSize: 16, fontWeight: '600' },
+  registerButtonText: { color: '#FFFFFF', fontSize: 17, fontWeight: '700', letterSpacing: 0.3 },
   loginLink: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
   loginLinkText: { fontSize: 14, color: Colors.subText },
-  loginLinkAction: { fontSize: 14, color: Colors.primary, fontWeight: '600' },
+  loginLinkAction: { fontSize: 14, color: Colors.primary, fontWeight: '700' },
 });
 
 export default RegisterScreen;

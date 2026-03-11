@@ -4,13 +4,14 @@ import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
 import { login, clearError } from '../../store/slices/authSlice';
+import logo from '../../assets/logo.jpg';
 
 const LoginContainer = styled.div`
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--accent-purple) 100%);
+  background: #111800;
   padding: var(--spacing-md);
 `;
 
@@ -38,14 +39,22 @@ const LoginCard = styled.div`
 const Logo = styled.div`
   text-align: center;
   margin-bottom: var(--spacing-xxl);
-  
+
+  img {
+    width: 90px;
+    height: 90px;
+    object-fit: contain;
+    border-radius: 16px;
+    margin-bottom: var(--spacing-md);
+  }
+
   h1 {
     color: var(--primary);
-    font-size: 28px;
+    font-size: 26px;
     font-weight: var(--font-weight-bold);
     margin-bottom: var(--spacing-xs);
   }
-  
+
   p {
     color: var(--sub-text);
     font-size: 14px;
@@ -207,6 +216,7 @@ const Login = () => {
     <LoginContainer>
       <LoginCard>
         <Logo>
+          <img src={logo} alt="Torodo Farms" />
           <h1>Torodo Farms</h1>
           <p>Admin Dashboard</p>
         </Logo>

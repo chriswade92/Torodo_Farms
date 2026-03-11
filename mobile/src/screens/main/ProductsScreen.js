@@ -15,6 +15,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import { fetchProducts, fetchProductsByCategory } from '../../store/slices/productSlice';
 import { addToCart } from '../../store/slices/cartSlice';
 import { UPLOADS_BASE_URL } from '../../config/api';
+import { getLocalProductImage } from '../../constants/productImages';
 
 const CATEGORIES = [
   { id: 'all', name: 'All', icon: '🌿' },
@@ -30,16 +31,17 @@ const CATEGORY_ICONS = {
   beverages: '🥤', snacks: '🥜',
 };
 
-const getProductImageUrl = (product) => {
-  if (!product?.images?.length) return null;
-  const primary = product.images.find(img => img.isPrimary);
-  const url = primary?.url || product.images[0]?.url;
-  if (!url) return null;
-  return `${UPLOADS_BASE_URL}${url}`;
+const getProductImageSource = (product) => {
+  if (product?.images?.length) {
+    const primary = product.images.find(img => img.isPrimary);
+    const url = primary?.url || product.images[0]?.url;
+    if (url) return { uri: `${UPLOADS_BASE_URL}${url}` };
+  }
+  return getLocalProductImage(product) || null;
 };
 
 const formatCurrency = (amount) =>
-  new Intl.NumberFormat('en-NG', { style: 'currency', currency: 'NGN', minimumFractionDigits: 0 }).format(amount || 0);
+  `${Math.round(amount || 0).toLocaleString('fr-SN')} FCFA`;
 
 const ProductsScreen = ({ route }) => {
   const dispatch = useDispatch();
@@ -77,12 +79,12 @@ const ProductsScreen = ({ route }) => {
 
   const renderProduct = ({ item }) => {
     const isAdded = addedId === item._id;
-    const imgUrl = getProductImageUrl(item);
+    const imgSource = getProductImageSource(item);
     return (
       <View style={styles.productCard}>
         <View style={styles.productImageBox}>
-          {imgUrl
-            ? <Image source={{ uri: imgUrl }} style={styles.productImageReal} resizeMode="cover" />
+          {imgSource
+            ? <Image source={imgSource} style={styles.productImageReal} resizeMode="cover" />
             : <Text style={styles.productEmoji}>{CATEGORY_ICONS[item.category] || '📦'}</Text>
           }
           {item.inventory?.quantity === 0 && (
@@ -221,7 +223,7 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   productImageBox: {
-    height: 90,
+    height: 120,
     borderRadius: 8,
     backgroundColor: Colors.background,
     justifyContent: 'center',
