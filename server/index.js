@@ -33,11 +33,9 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS — in production React is served from the same Express server (no CORS needed)
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production'
-    ? ['https://yourdomain.com']
-    : true, // Allow all origins in development (local network testing)
+  origin: process.env.NODE_ENV === 'production' ? false : true,
   credentials: true
 }));
 
@@ -74,18 +72,27 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Serve React dashboard build in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../client/build')));
+}
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ 
+  res.status(500).json({
     error: 'Something went wrong!',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
   });
 });
 
-// 404 handler
+// Catch-all: serve React app for non-API routes in production, 404 otherwise
 app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+  if (process.env.NODE_ENV === 'production' && !req.originalUrl.startsWith('/api')) {
+    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+  } else {
+    res.status(404).json({ error: 'Route not found' });
+  }
 });
 
 app.listen(PORT, () => {
